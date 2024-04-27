@@ -1,0 +1,36 @@
+<div>
+    @{
+        foreach (var player in _players.Keys)
+        {
+            <h1>@player</h1>
+            <input @oninput="@(text => { _players[player] = text.Value.ToString(); })">
+        }
+    }
+
+    <p>Add players</p>
+    @{
+        foreach (var player in _players)
+        {
+            <p>@player</p> 
+        }
+    }
+</div>
+
+@code {
+    public Dictionary<string,string> _players = new()
+    {
+        {"P1",""},
+        {"P2",""},
+        {"P3",""},
+        {"P4",""}
+    };
+    private string _input1 = "";
+
+    private void AddPlayer(string key, string player)
+    {
+        _players.TryGetValue(key, out var result);
+        if (result != "") return;
+
+        _players[key] = player;
+    }
+}

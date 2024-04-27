@@ -1,0 +1,54 @@
+﻿@page "/CreateMatch"
+@using Frontend.Data
+@inject NavigationManager NavigationManager
+@inject Matches Matches
+@rendermode InteractiveServer
+
+<div>
+    <h3>CreateMatch</h3>
+    <div class="container">
+        <div class="row row-cols-2">
+            <div class="col"><h3>Hold 1</h3></div>
+            <div class="col"><h3>Hold 2</h3></div>
+            @{
+                foreach (var player in _players.Keys)
+                {
+                    <div class="col">
+                        <span>@player</span>
+                        <input @oninput="@(text => { _players[player] = text.Value.ToString(); })">
+                    </div>
+                }
+            }
+        </div>
+    </div> 
+
+    @{
+        foreach (var player in _players)
+        {
+            <p>@player</p>
+        }
+    }
+    <button @onclick="CreateAsync">Create</button>
+    <p>@id</p>
+</div>
+
+@code {
+    private int id;
+    
+    public Dictionary<string,string> _players = new()
+    {
+        {"P1",""},
+        {"P2",""},
+        {"P3",""},
+        {"P4",""}
+    };
+    private string _input1 = "";
+    
+    public async Task CreateAsync()
+    {
+        var random = new Random();
+        id = random.Next();
+        Matches.Data.Add(id, _players);
+        NavigationManager.NavigateTo($"/match/{id}");
+    }
+}
