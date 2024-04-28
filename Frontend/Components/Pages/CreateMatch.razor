@@ -32,33 +32,28 @@
             }
         </div>
     </div>
-
     @foreach (var user in _players.SelectMany(player => player.Value))
     {
         <p>@user.DisplayName</p>
     }
-
     <button @onclick="CreateAsync">Create</button>
-    <p>@id</p>
 </div> 
 
 
 
 @code {
-    private int id;
-    
-    public Dictionary<Teams,List<User>> _players = new()
+    private Dictionary<Teams,List<User>> _players = new()
     {
         {Teams.TeamOne, [new User(), new User()] },
         {Teams.TeamTwo, [new User(), new User()] }
     };
-    private string _input1 = "";
     
-    public async Task CreateAsync()
+    private Task CreateAsync()
     {
         var random = new Random();
-        id = random.Next();
+        var id = random.Next();
         Matches.Data.Add(id, _players);
         NavigationManager.NavigateTo($"/match/{id}");
+        return Task.CompletedTask;
     }
 }

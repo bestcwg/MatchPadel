@@ -25,7 +25,9 @@ public static class APIs
    {
        app.MapGet("/matches", (Db db) =>
            {
-               var matches = db.Matches;
+               var matches = db.Matches
+                   .Include(m => m.GameType)
+                   .Include(m => m.Results);
                return matches;
            })
            .WithName("GetMatches")

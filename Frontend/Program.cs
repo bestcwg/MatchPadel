@@ -8,6 +8,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<Matches>();
+builder.Services.AddSingleton<HttpClientService>();
+builder.Services.AddHttpClient("backend", options =>
+{
+    options.BaseAddress = new Uri("http://localhost:5129");
+});
 
 var app = builder.Build();
 

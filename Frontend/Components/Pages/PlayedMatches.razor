@@ -1,0 +1,26 @@
+﻿@page "/PlayedMatches"
+@using System.Runtime.Serialization
+@using Frontend.Data
+@inject HttpClientService HttpClientService
+
+<h3>PlayedMatches</h3>
+
+@foreach (var match in _matches)
+{
+    <div>
+        <span>@match.GameType.Description</span>
+        <span>@match.DateTimeOffset</span>
+    </div>
+}
+
+
+@code {
+    private List<DTO.Match> _matches = []; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        _matches = await HttpClientService.GetMatches(); 
+        await base.OnInitializedAsync();
+    }
+
+}

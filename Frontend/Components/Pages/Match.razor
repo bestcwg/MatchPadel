@@ -7,6 +7,7 @@
 
 <div>
     <h3>Match Id: @Id</h3>
+    <h5>@_winner</h5>
     <h1>Set @_sets.ElementAt(_currentSelectedSet).Number</h1>
     <div class="container">
         <div class="row row-cols-2">
@@ -17,7 +18,6 @@
                     @foreach (var player in team.Value)
                     {
                         <p>@player.DisplayName</p>
-                        
                     }
                     <p>@(team.Key == Teams.TeamOne ?
                            _sets.ElementAt(_currentSelectedSet).TeamOnePoints :
@@ -38,6 +38,9 @@
             </div>
             <div class="@(_currentSelectedSet == 2 || _currentSelectedSet == _sets.Count - 1 ? "invisible" : "visible") col">
                 <button @onclick="@(() => SwitchMatchSet("forward"))">Forward</button>
+            </div>
+            <div>
+                <button @onclick="LogMatch">Log match</button>
             </div>
         </div>
     </div>
@@ -76,6 +79,7 @@
     private Dictionary<Teams, List<User>> _players;
     private List<MatchSet> _sets = [];
     private int _currentSelectedSet;
+    private Teams _winner = Teams.None;
     private const int MaxSets = 3;
 
     protected override Task OnInitializedAsync()
@@ -130,11 +134,29 @@
                 _sets.ElementAt(_currentSelectedSet).TeamOnePoints--;
                 break;
             case Teams.TeamTwo:
-                _sets.ElementAt(_currentSelectedSet).TeamOnePoints--;
+                _sets.ElementAt(_currentSelectedSet).TeamTwoPoints--;
                 break;
             default:
                 throw new Exception("Team dont exist");
         }
+    }
+
+    private void CheckWhoWon()
+    {
+        _winner = _sets switch
+        {
+            _ when _sets.Count(x => x.TeamOnePoints >= 6 && x.TeamOnePoints >= x.TeamTwoPoints + 2) >= 2 => Teams.TeamOne,
+            _ when _sets.Count(x => x.TeamTwoPoints >= 6 && x.TeamTwoPoints >= x.TeamOnePoints + 2) >= 2 => Teams.TeamTwo,
+            _ => Teams.None 
+        };
+    }
+
+    private void LogMatch()
+    {
+        CheckWhoWon();
+        if (_winner == Teams.None) return;
+        
+        
     }
     
     private class MatchSet(int number)
