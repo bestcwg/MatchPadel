@@ -1,0 +1,88 @@
+﻿@page "/match/{Id:int}"
+@using Frontend.Data
+@inject Matches Matches
+@rendermode InteractiveServer
+
+<div>
+    <h3>Match Id: @Id</h3>
+    <h1>@_sets.Count</h1>
+    <div class="container">
+        <div class="row row-cols-2">
+            <div class="col">
+                <h3>Hold 1</h3>
+                <p>@_players["P1"]</p>
+                <p>@_players["P3"]</p>
+                <p>@_sets.Last().TeamOnePoints</p>
+                <button @onclick="@(() => AddSetPoint("T1"))">+</button>
+                <button @onclick="@(() => RemoveSetPoint("T1"))">-</button>
+            </div>
+            <div class="col">
+                <h3>Hold 2</h3>
+                <p>@_players["P2"]</p>
+                <p>@_players["P4"]</p>
+                <p>@_sets.Last().TeamTwoPoints</p>
+                <button @onclick="@(() => AddSetPoint("T2"))">+</button>
+                <button @onclick="@(() => RemoveSetPoint("T2"))">-</button>
+            </div>
+        </div>
+    </div>
+    <button @onclick="NextSet">Finish Set</button>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Dictionary<string, string> _players;
+    private int _teamOnePoints;
+    private int _teamTwoPoints;
+    private List<MatchSet> _sets = [];
+
+    protected override Task OnInitializedAsync()
+    {
+        if (!Matches.Data.TryGetValue(Id, out var players)) return Task.CompletedTask;
+        _players = players;
+        _sets.Add(new MatchSet());
+        return base.OnInitializedAsync();
+    }
+
+    private void NextSet()
+    {
+        _sets.Add(new MatchSet());
+    }
+
+    private void AddSetPoint(string team)
+    {
+        switch (team)
+        {
+            case "T1":
+                _sets.Last().TeamOnePoints++;
+                break;
+            case "T2":
+                _sets.Last().TeamTwoPoints++;
+                break;
+            default:
+                throw new Exception("Team dont exist");
+        }
+    }
+    
+    private void RemoveSetPoint(string team)
+    {
+        switch (team)
+        {
+            case "T1":
+                _teamOnePoints--;
+                break;
+            case "T2":
+                _teamTwoPoints--;
+                break;
+            default:
+                throw new Exception("Team dont exist");
+        }
+    }
+    
+    private class MatchSet
+    {
+        public int TeamOnePoints { get; set; }
+        public int TeamTwoPoints { get; set; }
+    }
+}
