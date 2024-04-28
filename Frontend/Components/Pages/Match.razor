@@ -5,14 +5,14 @@
 
 <div>
     <h3>Match Id: @Id</h3>
-    <h1>@_sets.Count</h1>
+    <h1>Set @_sets.ElementAt(_currentSelectedSet).Number</h1>
     <div class="container">
         <div class="row row-cols-2">
             <div class="col">
                 <h3>Hold 1</h3>
                 <p>@_players["P1"]</p>
                 <p>@_players["P3"]</p>
-                <p>@_sets.Last().TeamOnePoints</p>
+                <p>@_sets.ElementAt(_currentSelectedSet).TeamOnePoints</p>
                 <button @onclick="@(() => AddSetPoint("T1"))">+</button>
                 <button @onclick="@(() => RemoveSetPoint("T1"))">-</button>
             </div>
@@ -20,34 +20,89 @@
                 <h3>Hold 2</h3>
                 <p>@_players["P2"]</p>
                 <p>@_players["P4"]</p>
-                <p>@_sets.Last().TeamTwoPoints</p>
+                <p>@_sets.ElementAt(_currentSelectedSet).TeamTwoPoints</p>
                 <button @onclick="@(() => AddSetPoint("T2"))">+</button>
                 <button @onclick="@(() => RemoveSetPoint("T2"))">-</button>
             </div>
         </div>
     </div>
-    <button @onclick="NextSet">Finish Set</button>
+    <div class="container">
+        <div class="row">
+            <div class="@(_currentSelectedSet == 0 ? "invisible" : "visible") col">
+                <button @onclick="@(() => SwitchMatchSet("back"))">Back</button>
+            </div>
+            <div class="@(_currentSelectedSet == _sets.Count - 1 ? "visible" : "invisible") col">
+                <button @onclick="CreateSet">Finish Set</button>
+            </div>
+            <div class="@(_currentSelectedSet == 2 || _currentSelectedSet == _sets.Count - 1 ? "invisible" : "visible") col">
+                <button @onclick="@(() => SwitchMatchSet("forward"))">Forward</button>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="container">
+            <div class="row row-cols-4">
+                <div class="col">
+                    <p>Sets</p>
+                    <div class="row">
+                        <p>Team 1</p> 
+                    </div>
+                    <div class="row">
+                        <p>Team 2</p>
+                    </div>
+                </div>
+                @foreach (var set in _sets)
+                {
+                    <div class="col">
+                        <p>Set @set.Number</p>
+                        <div class="row">
+                            <p>@set.TeamOnePoints</p>
+                        </div>
+                        <div class="row">
+                            <p>@set.TeamTwoPoints</p>
+                        </div>
+                    </div>
+                }
+            </div> 
+        </div> 
+    </div>
 </div>
 
 @code {
     [Parameter] public int Id { get; set; }
 
     private Dictionary<string, string> _players;
-    private int _teamOnePoints;
-    private int _teamTwoPoints;
     private List<MatchSet> _sets = [];
+    private int _currentSelectedSet;
+    private const int MaxSets = 3;
 
     protected override Task OnInitializedAsync()
     {
         if (!Matches.Data.TryGetValue(Id, out var players)) return Task.CompletedTask;
         _players = players;
-        _sets.Add(new MatchSet());
+        _sets.Add(new MatchSet(1));
         return base.OnInitializedAsync();
     }
 
-    private void NextSet()
+    private void SwitchMatchSet(string direction)
     {
-        _sets.Add(new MatchSet());
+        switch (direction)
+        {
+            case "back":
+                _currentSelectedSet--;
+                break;
+            case "forward":
+                _currentSelectedSet++;
+                break;
+        }
+    }
+
+    private void CreateSet()
+    {
+        if (_sets.Count == MaxSets) return;
+        
+        _sets.Add(new MatchSet(_sets.Count + 1));
+        _currentSelectedSet++;
     }
 
     private void AddSetPoint(string team)
@@ -55,10 +110,10 @@
         switch (team)
         {
             case "T1":
-                _sets.Last().TeamOnePoints++;
+                _sets.ElementAt(_currentSelectedSet).TeamOnePoints++;
                 break;
             case "T2":
-                _sets.Last().TeamTwoPoints++;
+                _sets.ElementAt(_currentSelectedSet).TeamTwoPoints++;
                 break;
             default:
                 throw new Exception("Team dont exist");
@@ -70,18 +125,19 @@
         switch (team)
         {
             case "T1":
-                _teamOnePoints--;
+                _sets.ElementAt(_currentSelectedSet).TeamOnePoints--;
                 break;
             case "T2":
-                _teamTwoPoints--;
+                _sets.ElementAt(_currentSelectedSet).TeamOnePoints--;
                 break;
             default:
                 throw new Exception("Team dont exist");
         }
     }
     
-    private class MatchSet
+    private class MatchSet(int number)
     {
+        public int Number { get; init; } = number;
         public int TeamOnePoints { get; set; }
         public int TeamTwoPoints { get; set; }
     }
