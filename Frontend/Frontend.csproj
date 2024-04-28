@@ -10,4 +10,8 @@
     <AdditionalFiles Include="Components\Pages\Match.razor" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DTO\DTO.csproj" />
+  </ItemGroup>
+
 </Project>

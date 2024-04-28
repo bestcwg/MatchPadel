@@ -1,5 +1,7 @@
 ﻿@page "/CreateMatch"
+@using DTO
 @using Frontend.Data
+@using Frontend.Enum
 @inject NavigationManager NavigationManager
 @inject Matches Matches
 @rendermode InteractiveServer
@@ -8,39 +10,47 @@
     <h3>CreateMatch</h3>
     <div class="container">
         <div class="row row-cols-2">
-            <div class="col"><h3>Hold 1</h3></div>
-            <div class="col"><h3>Hold 2</h3></div>
             @{
-                foreach (var player in _players.Keys)
+                foreach (var team in _players.Keys)
                 {
                     <div class="col">
-                        <span>@player</span>
-                        <input @oninput="@(text => { _players[player] = text.Value.ToString(); })">
+                        @{
+                            <h3>@(team == Teams.TeamOne ? "Team 1" : "Team 2")</h3>
+                            _players.TryGetValue(team, out var players);
+                            <div class="row">
+                                <p>Players</p>
+                            </div>
+                            foreach (var user in players)
+                            {
+                                <div class="row pb-3">
+                                    <input @oninput="@(text => { user.DisplayName = text.Value.ToString(); })">
+                                </div>
+                            }
+                        }
                     </div>
                 }
             }
         </div>
-    </div> 
+    </div>
 
-    @{
-        foreach (var player in _players)
-        {
-            <p>@player</p>
-        }
+    @foreach (var user in _players.SelectMany(player => player.Value))
+    {
+        <p>@user.DisplayName</p>
     }
+
     <button @onclick="CreateAsync">Create</button>
     <p>@id</p>
-</div>
+</div> 
+
+
 
 @code {
     private int id;
     
-    public Dictionary<string,string> _players = new()
+    public Dictionary<Teams,List<User>> _players = new()
     {
-        {"P1",""},
-        {"P2",""},
-        {"P3",""},
-        {"P4",""}
+        {Teams.TeamOne, [new User(), new User()] },
+        {Teams.TeamTwo, [new User(), new User()] }
     };
     private string _input1 = "";
     

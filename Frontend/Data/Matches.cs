@@ -1,6 +1,9 @@
-﻿namespace Frontend.Data;
+﻿using DTO;
+using Frontend.Enum;
+
+namespace Frontend.Data;
 
 public class Matches
 {
-    public Dictionary<int, Dictionary<string,string>> Data { get; set; } = new();
+    public Dictionary<int, Dictionary<Teams,List<User>>> Data { get; set; } = new();
 }

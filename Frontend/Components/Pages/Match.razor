@@ -1,5 +1,7 @@
 ﻿@page "/match/{Id:int}"
+@using DTO
 @using Frontend.Data
+@using Frontend.Enum
 @inject Matches Matches
 @rendermode InteractiveServer
 
@@ -8,22 +10,22 @@
     <h1>Set @_sets.ElementAt(_currentSelectedSet).Number</h1>
     <div class="container">
         <div class="row row-cols-2">
-            <div class="col">
-                <h3>Team 1</h3>
-                <p>@_players["P1"]</p>
-                <p>@_players["P3"]</p>
-                <p>@_sets.ElementAt(_currentSelectedSet).TeamOnePoints</p>
-                <button @onclick="@(() => AddSetPoint("T1"))">+</button>
-                <button @onclick="@(() => RemoveSetPoint("T1"))">-</button>
-            </div>
-            <div class="col">
-                <h3>Team 2</h3>
-                <p>@_players["P2"]</p>
-                <p>@_players["P4"]</p>
-                <p>@_sets.ElementAt(_currentSelectedSet).TeamTwoPoints</p>
-                <button @onclick="@(() => AddSetPoint("T2"))">+</button>
-                <button @onclick="@(() => RemoveSetPoint("T2"))">-</button>
-            </div>
+            @foreach (var team in _players)
+            {
+                <div class="col">
+                    <h3>@(team.Key == Teams.TeamOne ? "Team 1" : "Team 2")</h3> 
+                    @foreach (var player in team.Value)
+                    {
+                        <p>@player.DisplayName</p>
+                        
+                    }
+                    <p>@(team.Key == Teams.TeamOne ?
+                           _sets.ElementAt(_currentSelectedSet).TeamOnePoints :
+                           _sets.ElementAt(_currentSelectedSet).TeamTwoPoints)</p>
+                    <button @onclick="@(() => AddSetPoint(team.Key))">+</button>
+                    <button @onclick="@(() => RemoveSetPoint(team.Key))">-</button>
+                </div>
+            }
         </div>
     </div>
     <div class="container">
@@ -71,7 +73,7 @@
 @code {
     [Parameter] public int Id { get; set; }
 
-    private Dictionary<string, string> _players;
+    private Dictionary<Teams, List<User>> _players;
     private List<MatchSet> _sets = [];
     private int _currentSelectedSet;
     private const int MaxSets = 3;
@@ -105,14 +107,14 @@
         _currentSelectedSet++;
     }
 
-    private void AddSetPoint(string team)
+    private void AddSetPoint(Teams team)
     {
         switch (team)
         {
-            case "T1":
+            case Teams.TeamOne:
                 _sets.ElementAt(_currentSelectedSet).TeamOnePoints++;
                 break;
-            case "T2":
+            case Teams.TeamTwo:
                 _sets.ElementAt(_currentSelectedSet).TeamTwoPoints++;
                 break;
             default:
@@ -120,14 +122,14 @@
         }
     }
     
-    private void RemoveSetPoint(string team)
+    private void RemoveSetPoint(Teams team)
     {
         switch (team)
         {
-            case "T1":
+            case Teams.TeamOne:
                 _sets.ElementAt(_currentSelectedSet).TeamOnePoints--;
                 break;
-            case "T2":
+            case Teams.TeamTwo:
                 _sets.ElementAt(_currentSelectedSet).TeamOnePoints--;
                 break;
             default:
