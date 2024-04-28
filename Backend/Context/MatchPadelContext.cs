@@ -3,19 +3,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Context;
 
-public partial class MatchPadelContext : DbContext 
+public class MatchPadelContext : DbContext
 {
-   public MatchPadelContext(DbContextOptions<MatchPadelContext> options) : base(options)
-   {
-      
-   }
-   
-   public virtual DbSet<User> Users { get; set; }
+    public MatchPadelContext(DbContextOptions<MatchPadelContext> options) : base(options)
+    {
 
-   protected override void OnModelCreating(ModelBuilder modelBuilder)
-   {
-      OnModelCreatingPartial(modelBuilder);   
-   }
+    }
 
-   partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    public DbSet<User> Users { get; set; }
+    public DbSet<Match> Matches { get; set; }
+    public DbSet<Result> Results { get; set; }
+    public DbSet<GameType> GameTypes { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Result>().HasKey(r => new { r.MatchRefId, r.PlayerId });
+    }
 }
