@@ -10,6 +10,11 @@
     <div>
         <span>@match.GameType.Description</span>
         <span>@match.DateTimeOffset</span>
+        @foreach (var result in match.Results)
+        {
+            <p>@result.User.DisplayName</p>
+            <p>@(result.Score == 0 ? "Lost" : "Won")</p>
+        }
     </div>
 }
 
@@ -22,5 +27,4 @@
         _matches = await HttpClientService.GetMatches(); 
         await base.OnInitializedAsync();
     }
-
 }

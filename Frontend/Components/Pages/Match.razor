@@ -3,6 +3,7 @@
 @using Frontend.Data
 @using Frontend.Enum
 @inject Matches Matches
+@inject HttpClientService HttpClientService
 @rendermode InteractiveServer
 
 <div>
@@ -151,12 +152,34 @@
         };
     }
 
-    private void LogMatch()
+    private async Task LogMatch()
     {
         CheckWhoWon();
         if (_winner == Teams.None) return;
+        var currentMatch = new DTO.Match()
+        {
+           DateTimeOffset = DateTimeOffset.Now.ToUnixTimeSeconds(),
+           GameType = new GameType()
+           {
+               Id = 1,
+               Description = "Normal"
+           },
+           Results = new List<Result>()
+        };
         
+        foreach (var player in _players)
+        {
+           player.Value.ForEach(p => currentMatch.Results.Add(new Result()
+           {
+              User = new User()
+              {
+                  DisplayName = p.DisplayName.ToLower()
+              },
+              Score = player.Key == _winner ? 1 : 0
+           })); 
+        }
         
+        await HttpClientService.PostMatchAsync(currentMatch);
     }
     
     private class MatchSet(int number)

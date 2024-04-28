@@ -24,4 +24,17 @@ public class HttpClientService(IHttpClientFactory httpClientFactory)
             throw;
         }
     }
+
+    public async Task PostMatchAsync(Match match)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("/match", match);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        } 
+    }
 }

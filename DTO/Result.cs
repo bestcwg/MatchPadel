@@ -6,9 +6,10 @@ namespace DTO;
 
 public class Result
 {
-    public int PlayerId { get; set; }
+    public int UserRefId { get; set; }
     public int Score { get; set; }
     public int MatchRefId { get; set; }
     [JsonIgnore]
     public Match Match { get; set; }
+    public User? User { get; set; }
 }

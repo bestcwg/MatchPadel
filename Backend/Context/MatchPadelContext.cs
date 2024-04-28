@@ -17,6 +17,6 @@ public class MatchPadelContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Result>().HasKey(r => new { r.MatchRefId, r.PlayerId });
+        modelBuilder.Entity<Result>().HasKey(r => new { r.MatchRefId, r.UserRefId });
     }
 }
