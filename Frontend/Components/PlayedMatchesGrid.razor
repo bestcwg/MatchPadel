@@ -1,0 +1,44 @@
+﻿@using DTO
+@using Frontend.Data
+@inject HttpClientService HttpClientService
+@using Microsoft.AspNetCore.Components.QuickGrid
+<h3>PlayedMatchesGrid</h3>
+<QuickGrid Items="_matches">
+    <PropertyColumn Property="@(m => m.GameType.Description)" Title="Game Type" Class="gametype-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => ConvertToLocaleTimeFromUnixTimeInSeconds(m.DateTimeOffset))" Title="Date" Class="date-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.First(r => r.Score == 1).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.Last(r => r.Score == 1).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.First(r => r.Score == 0).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.Last(r => r.Score == 0).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
+</QuickGrid>
+
+<style>
+    .date-cell {
+        width: 200px; 
+    }
+    .player-cell {
+        width: 100px; 
+    }
+    
+    .gametype-cell {
+        width: 200px; 
+    }
+</style>
+
+@code {
+    private IQueryable<Match>? _matches;
+
+    protected override async Task OnInitializedAsync()
+    {   
+        var matches = await HttpClientService.GetMatches();
+        _matches = matches.AsQueryable();
+        await base.OnInitializedAsync();
+    }
+
+    private string ConvertToLocaleTimeFromUnixTimeInSeconds(long unixTime)
+    {
+        var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var datetime = epoch.AddSeconds(unixTime).ToLocalTime();
+        return datetime.ToString("dd-MM-yyyy HH:mm");
+    }
+}

@@ -1,30 +1,13 @@
 ﻿@page "/PlayedMatches"
+@using System.Globalization
 @using System.Runtime.Serialization
 @using Frontend.Data
 @inject HttpClientService HttpClientService
 
 <h3>PlayedMatches</h3>
 
-@foreach (var match in _matches)
-{
-    <div>
-        <span>@match.GameType.Description</span>
-        <span>@match.DateTimeOffset</span>
-        @foreach (var result in match.Results)
-        {
-            <p>@result.User.DisplayName</p>
-            <p>@(result.Score == 0 ? "Lost" : "Won")</p>
-        }
-    </div>
-}
-
+<PlayedMatchesGrid></PlayedMatchesGrid>
 
 @code {
-    private List<DTO.Match> _matches = []; 
 
-    protected override async Task OnInitializedAsync()
-    {
-        _matches = await HttpClientService.GetMatches(); 
-        await base.OnInitializedAsync();
-    }
 }
