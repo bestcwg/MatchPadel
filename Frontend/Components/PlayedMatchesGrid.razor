@@ -2,6 +2,9 @@
 @using Frontend.Data
 @inject HttpClientService HttpClientService
 @using Microsoft.AspNetCore.Components.QuickGrid
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
 <h3>PlayedMatchesGrid</h3>
 <QuickGrid Items="_matches">
     <PropertyColumn Property="@(m => m.GameType.Description)" Title="Game Type" Class="gametype-cell"></PropertyColumn>
@@ -10,7 +13,30 @@
     <PropertyColumn Property="@(m => m.Results.Last(r => r.Score == 1).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
     <PropertyColumn Property="@(m => m.Results.First(r => r.Score == 0).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
     <PropertyColumn Property="@(m => m.Results.Last(r => r.Score == 0).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
+    <TemplateColumn>
+        <div>
+            <button @onclick="async(args) => { _currentSelectedMatch = context; await OnOpenResult(args); }">Show score</button>
+        </div> 
+    </TemplateColumn>
 </QuickGrid>
+
+<dialog id="sets-result">
+    @foreach (var set in _currentSelectedMatch.Results ?? 
+                         throw new Exception("Result list is null in sets result dialog box"))
+    {
+        <p>@set.Score</p>
+    }
+    <form method="dialog">
+        <button>Close</button>
+    </form>
+</dialog>   
+
+<script>
+    window.showSetsResultDialogBox = () => {
+        document.getElementById("sets-result").showModal();
+    };
+</script>
+
 
 <style>
     .date-cell {
@@ -27,12 +53,18 @@
 
 @code {
     private IQueryable<Match>? _matches;
+    private Match _currentSelectedMatch = new() {Results = new List<Result>()};
 
     protected override async Task OnInitializedAsync()
     {   
         var matches = await HttpClientService.GetMatches();
         _matches = matches.AsQueryable();
         await base.OnInitializedAsync();
+    }
+
+    private async Task OnOpenResult(MouseEventArgs args)
+    {  
+        await JS.InvokeVoidAsync("showSetsResultDialogBox");
     }
 
     private string ConvertToLocaleTimeFromUnixTimeInSeconds(long unixTime)
