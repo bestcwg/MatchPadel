@@ -21,8 +21,8 @@
                         <p>@player.DisplayName</p>
                     }
                     <p>@(team.Key == Teams.TeamOne ?
-                           _sets.ElementAt(_currentSelectedSet).TeamOnePoints :
-                           _sets.ElementAt(_currentSelectedSet).TeamTwoPoints)</p>
+                           _sets.ElementAt(_currentSelectedSet).TeamOneScore :
+                           _sets.ElementAt(_currentSelectedSet).TeamTwoScore)</p>
                     <button @onclick="@(() => AddSetPoint(team.Key))">+</button>
                     <button @onclick="@(() => RemoveSetPoint(team.Key))">-</button>
                 </div>
@@ -62,10 +62,10 @@
                     <div class="col">
                         <p>Set @set.Number</p>
                         <div class="row">
-                            <p>@set.TeamOnePoints</p>
+                            <p>@set.TeamOneScore</p>
                         </div>
                         <div class="row">
-                            <p>@set.TeamTwoPoints</p>
+                            <p>@set.TeamTwoScore</p>
                         </div>
                     </div>
                 }
@@ -78,7 +78,7 @@
     [Parameter] public int Id { get; set; }
 
     private Dictionary<Teams, List<User>> _players;
-    private List<MatchSet> _sets = [];
+    private List<Set> _sets = [];
     private int _currentSelectedSet;
     private Teams _winner = Teams.None;
     private const int MaxSets = 3;
@@ -87,7 +87,7 @@
     {
         if (!Matches.Data.TryGetValue(Id, out var players)) return Task.CompletedTask;
         _players = players;
-        _sets.Add(new MatchSet(1));
+        _sets.Add(new Set(1));
         return base.OnInitializedAsync();
     }
 
@@ -108,7 +108,7 @@
     {
         if (_sets.Count == MaxSets) return;
         
-        _sets.Add(new MatchSet(_sets.Count + 1));
+        _sets.Add(new Set(_sets.Count + 1));
         _currentSelectedSet++;
     }
 
@@ -117,10 +117,10 @@
         switch (team)
         {
             case Teams.TeamOne:
-                _sets.ElementAt(_currentSelectedSet).TeamOnePoints++;
+                _sets.ElementAt(_currentSelectedSet).TeamOneScore++;
                 break;
             case Teams.TeamTwo:
-                _sets.ElementAt(_currentSelectedSet).TeamTwoPoints++;
+                _sets.ElementAt(_currentSelectedSet).TeamTwoScore++;
                 break;
             default:
                 throw new Exception("Team dont exist");
@@ -132,10 +132,10 @@
         switch (team)
         {
             case Teams.TeamOne:
-                _sets.ElementAt(_currentSelectedSet).TeamOnePoints--;
+                _sets.ElementAt(_currentSelectedSet).TeamOneScore--;
                 break;
             case Teams.TeamTwo:
-                _sets.ElementAt(_currentSelectedSet).TeamTwoPoints--;
+                _sets.ElementAt(_currentSelectedSet).TeamTwoScore--;
                 break;
             default:
                 throw new Exception("Team dont exist");
@@ -146,8 +146,8 @@
     {
         _winner = _sets switch
         {
-            _ when _sets.Count(x => x.TeamOnePoints >= 6 && x.TeamOnePoints >= x.TeamTwoPoints + 2) >= 2 => Teams.TeamOne,
-            _ when _sets.Count(x => x.TeamTwoPoints >= 6 && x.TeamTwoPoints >= x.TeamOnePoints + 2) >= 2 => Teams.TeamTwo,
+            _ when _sets.Count(x => x.TeamOneScore >= 6 && x.TeamOneScore >= x.TeamTwoScore + 2) >= 2 => Teams.TeamOne,
+            _ when _sets.Count(x => x.TeamTwoScore >= 6 && x.TeamTwoScore >= x.TeamOneScore + 2) >= 2 => Teams.TeamTwo,
             _ => Teams.None 
         };
     }
@@ -164,6 +164,8 @@
                Id = 1,
                Description = "Normal"
            },
+           Winner = (int)_winner,
+           Sets = _sets, 
            Results = new List<Result>()
         };
         
@@ -175,17 +177,10 @@
               {
                   DisplayName = p.DisplayName.ToLower()
               },
-              Score = player.Key == _winner ? 1 : 0
+              Team = (int)player.Key 
            })); 
         }
         
         await HttpClientService.PostMatchAsync(currentMatch);
-    }
-    
-    private class MatchSet(int number)
-    {
-        public int Number { get; init; } = number;
-        public int TeamOnePoints { get; set; }
-        public int TeamTwoPoints { get; set; }
     }
 }

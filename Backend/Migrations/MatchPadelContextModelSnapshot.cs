@@ -45,6 +45,9 @@ namespace Backend.Migrations
                     b.Property<int?>("GameTypeRefId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Winner")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("GameTypeRefId");
@@ -60,7 +63,7 @@ namespace Backend.Migrations
                     b.Property<int>("UserRefId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Score")
+                    b.Property<int>("Team")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("MatchRefId", "UserRefId");
@@ -68,6 +71,25 @@ namespace Backend.Migrations
                     b.HasIndex("UserRefId");
 
                     b.ToTable("Results");
+                });
+
+            modelBuilder.Entity("DTO.Set", b =>
+                {
+                    b.Property<int>("MatchRefId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TeamOneScore")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TeamTwoScore")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("MatchRefId", "Number");
+
+                    b.ToTable("Sets");
                 });
 
             modelBuilder.Entity("DTO.User", b =>
@@ -113,6 +135,17 @@ namespace Backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DTO.Set", b =>
+                {
+                    b.HasOne("DTO.Match", "MatchNavigation")
+                        .WithMany("Sets")
+                        .HasForeignKey("MatchRefId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MatchNavigation");
+                });
+
             modelBuilder.Entity("DTO.GameType", b =>
                 {
                     b.Navigation("Matches");
@@ -121,6 +154,8 @@ namespace Backend.Migrations
             modelBuilder.Entity("DTO.Match", b =>
                 {
                     b.Navigation("Results");
+
+                    b.Navigation("Sets");
                 });
 
             modelBuilder.Entity("DTO.User", b =>

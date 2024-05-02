@@ -27,6 +27,7 @@ public static class APIs
             {
                 var matches = db.Matches
                     .Include(m => m.GameType)
+                    .Include(m => m.Sets)
                     .Include(m => m.Results)!
                     .ThenInclude(r => r.User);
                 return matches;

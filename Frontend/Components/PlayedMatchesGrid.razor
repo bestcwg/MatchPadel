@@ -1,5 +1,6 @@
 ﻿@using DTO
 @using Frontend.Data
+@using Frontend.Enum
 @inject HttpClientService HttpClientService
 @using Microsoft.AspNetCore.Components.QuickGrid
 @inject IJSRuntime JS
@@ -9,23 +10,65 @@
 <QuickGrid Items="_matches">
     <PropertyColumn Property="@(m => m.GameType.Description)" Title="Game Type" Class="gametype-cell"></PropertyColumn>
     <PropertyColumn Property="@(m => ConvertToLocaleTimeFromUnixTimeInSeconds(m.DateTimeOffset))" Title="Date" Class="date-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.First(r => r.Score == 1).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.Last(r => r.Score == 1).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.First(r => r.Score == 0).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.Last(r => r.Score == 0).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.First(r => r.Team == m.Winner).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.Last(r => r.Team == m.Winner).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.First(r => r.Team != m.Winner).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.Results.Last(r => r.Team != m.Winner).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
     <TemplateColumn>
         <div>
-            <button @onclick="async(args) => { _currentSelectedMatch = context; await OnOpenResult(args); }">Show score</button>
-        </div> 
+            <button @onclick="async (args) => { _currentSelectedMatch = context; await OnOpenResult(args); }">Show score</button>
+        </div>
     </TemplateColumn>
 </QuickGrid>
 
-<dialog id="sets-result">
-    @foreach (var set in _currentSelectedMatch.Results ?? 
-                         throw new Exception("Result list is null in sets result dialog box"))
-    {
-        <p>@set.Score</p>
-    }
+<dialog id="sets-result" class="w-50">
+    <div class="container">
+        <div class="row row-col-6">
+            <div class="col">
+                <div class="row">
+                    <h4>Set</h4>
+                </div>
+                <div class="row">
+                    <p>Team One</p>
+                </div>
+                <div class="row">
+                    <p>Team two</p>
+                </div>
+            </div>
+            @foreach (var set in _currentSelectedMatch.Sets ??
+                                 throw new Exception("Result list is null in sets result dialog box"))
+            {
+                <div class="col">
+                    <div class="row">
+                        <h4>@set.Number</h4>
+                    </div>
+                    <div class="row">
+                        <p>@set.TeamOneScore</p>
+                    </div>
+                    <div class="row">
+                        <p>@set.TeamTwoScore</p>
+                    </div>
+                </div>
+            }
+            @if (_currentSelectedMatch.Results.Any())
+            {
+                <div class="col">
+                    <h4>Team One</h4>
+                    @foreach (var player in _currentSelectedMatch.Results.Where(x => x.Team == (int)Teams.TeamOne))
+                    {
+                        <p>@player.User.DisplayName</p>        
+                    }
+                </div>
+                <div class="col">
+                    <h4>Team Two</h4>
+                    @foreach (var player in _currentSelectedMatch.Results.Where(x => x.Team == (int)Teams.TeamTwo))
+                    {
+                        <p>@player.User.DisplayName</p>
+                    }
+                </div>    
+            }
+        </div>
+    </div>
     <form method="dialog">
         <button>Close</button>
     </form>
@@ -53,7 +96,7 @@
 
 @code {
     private IQueryable<Match>? _matches;
-    private Match _currentSelectedMatch = new() {Results = new List<Result>()};
+    private Match _currentSelectedMatch = new() {Results = new List<Result>(), Sets = new List<Set>()};
 
     protected override async Task OnInitializedAsync()
     {   
