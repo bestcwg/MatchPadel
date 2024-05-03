@@ -5,5 +5,5 @@ namespace Frontend.Data;
 
 public class Matches
 {
-    public Dictionary<int, Dictionary<Teams,List<User>>> Data { get; set; } = new();
+    public Dictionary<int, DTO.Match> Data { get; set; } = new();
 }

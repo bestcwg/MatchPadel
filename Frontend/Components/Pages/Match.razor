@@ -4,27 +4,28 @@
 @using Frontend.Enum
 @inject Matches Matches
 @inject HttpClientService HttpClientService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <div>
     <h3>Match Id: @Id</h3>
     <h5>@_winner</h5>
-    <h1>Set @_sets.ElementAt(_currentSelectedSet).Number</h1>
+    <h1>Set @_currentMatch.Sets.ElementAt(_currentSelectedSet).Number</h1>
     <div class="container">
         <div class="row row-cols-2">
-            @foreach (var team in _players)
+            @foreach (var team in new List<Teams>() { Teams.TeamOne , Teams.TeamTwo})
             {
                 <div class="col">
-                    <h3>@(team.Key == Teams.TeamOne ? "Team 1" : "Team 2")</h3> 
-                    @foreach (var player in team.Value)
+                    <h3>@(team == Teams.TeamOne ? "Team 1" : "Team 2")</h3> 
+                    @foreach (var player in _currentMatch.Results.Where(x => x.Team == (int)team ))
                     {
-                        <p>@player.DisplayName</p>
+                        <p>@player.User.DisplayName</p>
                     }
-                    <p>@(team.Key == Teams.TeamOne ?
-                           _sets.ElementAt(_currentSelectedSet).TeamOneScore :
-                           _sets.ElementAt(_currentSelectedSet).TeamTwoScore)</p>
-                    <button @onclick="@(() => AddSetPoint(team.Key))">+</button>
-                    <button @onclick="@(() => RemoveSetPoint(team.Key))">-</button>
+                    <p>@(team == Teams.TeamOne ?
+                           _currentMatch.Sets.ElementAt(_currentSelectedSet).TeamOneScore :
+                           _currentMatch.Sets.ElementAt(_currentSelectedSet).TeamTwoScore)</p>
+                    <button @onclick="@(() => AddSetPoint(team))">+</button>
+                    <button @onclick="@(() => RemoveSetPoint(team))">-</button>
                 </div>
             }
         </div>
@@ -34,10 +35,10 @@
             <div class="@(_currentSelectedSet == 0 ? "invisible" : "visible") col">
                 <button @onclick="@(() => SwitchMatchSet("back"))">Back</button>
             </div>
-            <div class="@(_currentSelectedSet == _sets.Count - 1 ? "visible" : "invisible") col">
-                <button @onclick="CreateSet">Finish Set</button>
+            <div class="@(_currentSelectedSet == _currentMatch.Sets.Count - 1 ? "visible" : "invisible") col">
+                <button @onclick="CreateSet">New set</button>
             </div>
-            <div class="@(_currentSelectedSet == 2 || _currentSelectedSet == _sets.Count - 1 ? "invisible" : "visible") col">
+            <div class="@(_currentSelectedSet == 2 || _currentSelectedSet == _currentMatch.Sets.Count - 1 ? "invisible" : "visible") col">
                 <button @onclick="@(() => SwitchMatchSet("forward"))">Forward</button>
             </div>
             <div>
@@ -57,7 +58,7 @@
                         <p>Team 2</p>
                     </div>
                 </div>
-                @foreach (var set in _sets)
+                @foreach (var set in _currentMatch.Sets)
                 {
                     <div class="col">
                         <p>Set @set.Number</p>
@@ -77,17 +78,15 @@
 @code {
     [Parameter] public int Id { get; set; }
 
-    private Dictionary<Teams, List<User>> _players;
-    private List<Set> _sets = [];
     private int _currentSelectedSet;
     private Teams _winner = Teams.None;
     private const int MaxSets = 3;
+    private DTO.Match _currentMatch;
 
     protected override Task OnInitializedAsync()
     {
-        if (!Matches.Data.TryGetValue(Id, out var players)) return Task.CompletedTask;
-        _players = players;
-        _sets.Add(new Set(1));
+        if (!Matches.Data.TryGetValue(Id, out var currentMatch)) return Task.CompletedTask;
+        _currentMatch = currentMatch;
         return base.OnInitializedAsync();
     }
 
@@ -106,9 +105,9 @@
 
     private void CreateSet()
     {
-        if (_sets.Count == MaxSets) return;
+        if (_currentMatch.Sets.Count == MaxSets) return;
         
-        _sets.Add(new Set(_sets.Count + 1));
+        _currentMatch.Sets.Add(new Set(_currentMatch.Sets.Count + 1));
         _currentSelectedSet++;
     }
 
@@ -117,10 +116,10 @@
         switch (team)
         {
             case Teams.TeamOne:
-                _sets.ElementAt(_currentSelectedSet).TeamOneScore++;
+                _currentMatch.Sets.ElementAt(_currentSelectedSet).TeamOneScore++;
                 break;
             case Teams.TeamTwo:
-                _sets.ElementAt(_currentSelectedSet).TeamTwoScore++;
+                _currentMatch.Sets.ElementAt(_currentSelectedSet).TeamTwoScore++;
                 break;
             default:
                 throw new Exception("Team dont exist");
@@ -132,10 +131,10 @@
         switch (team)
         {
             case Teams.TeamOne:
-                _sets.ElementAt(_currentSelectedSet).TeamOneScore--;
+                _currentMatch.Sets.ElementAt(_currentSelectedSet).TeamOneScore--;
                 break;
             case Teams.TeamTwo:
-                _sets.ElementAt(_currentSelectedSet).TeamTwoScore--;
+                _currentMatch.Sets.ElementAt(_currentSelectedSet).TeamTwoScore--;
                 break;
             default:
                 throw new Exception("Team dont exist");
@@ -144,10 +143,10 @@
 
     private void CheckWhoWon()
     {
-        _winner = _sets switch
+        _winner = _currentMatch.Sets switch
         {
-            _ when _sets.Count(x => x.TeamOneScore >= 6 && x.TeamOneScore >= x.TeamTwoScore + 2) >= 2 => Teams.TeamOne,
-            _ when _sets.Count(x => x.TeamTwoScore >= 6 && x.TeamTwoScore >= x.TeamOneScore + 2) >= 2 => Teams.TeamTwo,
+            _ when _currentMatch.Sets.Count(x => x.TeamOneScore >= 6 && x.TeamOneScore >= x.TeamTwoScore + 2) >= 2 => Teams.TeamOne,
+            _ when _currentMatch.Sets.Count(x => x.TeamTwoScore >= 6 && x.TeamTwoScore >= x.TeamOneScore + 2) >= 2 => Teams.TeamTwo,
             _ => Teams.None 
         };
     }
@@ -156,31 +155,10 @@
     {
         CheckWhoWon();
         if (_winner == Teams.None) return;
-        var currentMatch = new DTO.Match()
-        {
-           DateTimeOffset = DateTimeOffset.Now.ToUnixTimeSeconds(),
-           GameType = new GameType()
-           {
-               Id = 1,
-               Description = "Normal"
-           },
-           Winner = (int)_winner,
-           Sets = _sets, 
-           Results = new List<Result>()
-        };
+        _currentMatch.Winner = (int)_winner;
         
-        foreach (var player in _players)
-        {
-           player.Value.ForEach(p => currentMatch.Results.Add(new Result()
-           {
-              User = new User()
-              {
-                  DisplayName = p.DisplayName.ToLower()
-              },
-              Team = (int)player.Key 
-           })); 
-        }
-        
-        await HttpClientService.PostMatchAsync(currentMatch);
+        await HttpClientService.PostMatchAsync(_currentMatch);
+        Matches.Data.Remove(Id);
+        NavigationManager.NavigateTo("/");
     }
 }

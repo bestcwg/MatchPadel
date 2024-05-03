@@ -47,12 +47,42 @@
         {Teams.TeamOne, [new User(), new User()] },
         {Teams.TeamTwo, [new User(), new User()] }
     };
-    
+
     private Task CreateAsync()
     {
         var random = new Random();
         var id = random.Next();
-        Matches.Data.Add(id, _players);
+        var match = new DTO.Match()
+        {
+            DateTimeOffset = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            GameType = new GameType
+            {
+                Id = 1,
+                Description = "Normal"
+            },
+            Winner = (int)Teams.None,
+            Results = new List<Result>(),
+            Sets = new List<Set>()
+            {
+                new(1)
+            }
+        };
+        
+        foreach (var playersKey in _players.Keys)
+        {
+            _players.TryGetValue(playersKey, out var value);
+            foreach (var user in value)
+            {
+                match.Results.Add(new Result
+                {
+                    Team = (int)playersKey,
+                    User = user
+                }); 
+            }
+        }
+        
+        Matches.Data.Add(id, match);
+
         NavigationManager.NavigateTo($"/match/{id}");
         return Task.CompletedTask;
     }
