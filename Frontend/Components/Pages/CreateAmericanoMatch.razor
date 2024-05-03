@@ -1,0 +1,44 @@
+﻿@page "/CreateAmericanoMatch"
+@using Frontend.Data
+@using Frontend.Enum
+@using DTO
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject Matches Matches
+
+<h3>CreateAmericanoMatch</h3>
+<div>
+    @foreach (var user in _users)
+    {
+        <div>
+            <input @oninput="args => user.DisplayName = (string)args.Value"/>
+        </div>
+    }   
+    <button @onclick="AddPlayer">Add player</button>
+    <button @onclick="CreateMatch">Create match</button>
+</div>
+
+@code {
+    private List<User> _users { get; set; } = Enumerable.Range(0, 4 ).Select(_ => new User()).ToList();
+
+    private void AddPlayer()
+    {
+        _users.Add(new User());
+        StateHasChanged();
+    }
+
+    private void CreateMatch()
+    {
+        var match = new DTO.Match()
+        {
+            GameType = new GameType
+            {
+                Id = (int)GameTypes.Americano
+            },
+            Results = _users.Select(x => new Result { Team = (int)Teams.None, User = x }).ToList()
+        };
+
+        var id = Matches.AddMatch(match);
+        NavigationManager.NavigateTo($"/AmericanoMatch/{id}");
+    }
+}

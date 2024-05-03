@@ -50,8 +50,6 @@
 
     private Task CreateAsync()
     {
-        var random = new Random();
-        var id = random.Next();
         var match = new DTO.Match()
         {
             DateTimeOffset = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
@@ -81,8 +79,7 @@
             }
         }
         
-        Matches.Data.Add(id, match);
-
+        var id = Matches.AddMatch(match);
         NavigationManager.NavigateTo($"/match/{id}");
         return Task.CompletedTask;
     }

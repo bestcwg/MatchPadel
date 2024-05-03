@@ -1,0 +1,85 @@
+﻿@page "/AmericanoMatch/{Id:int}"
+@using DTO
+@using Frontend.Data
+@inject HttpClientService httpClientService
+@inject Matches Matches
+<h3>AmericanoMatch</h3>
+
+@foreach (var player in _currentMatch.Results)
+{
+    <p>@player.User.DisplayName</p>
+}
+
+@foreach (var userMatch in _matches)
+{
+    <p>Match</p>
+    <p>@userMatch.TeamOne.Item1.DisplayName : @userMatch.TeamOne.Item2.DisplayName</p>
+    <p>@userMatch.TeamTwo.Item1.DisplayName : @userMatch.TeamTwo.Item2.DisplayName</p>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private DTO.Match _currentMatch;
+    private List<AmericanoMatchModel> _matches = [];
+    private Stack<Tuple<User, User>> _userMatches = [];
+
+    protected override Task OnInitializedAsync()
+    {
+        _currentMatch = Matches.GetMatch(Id);
+        GenerateMatches();
+        return base.OnInitializedAsync();
+    }
+
+    private Task GenerateMatches()
+    {
+        var stack = new Stack<User>();
+        foreach (var currentMatchResult in _currentMatch.Results)
+        {
+            stack.Push(currentMatchResult.User); 
+        }
+
+        while (stack.Count > 0)
+        {
+            var user = stack.Pop();
+
+            foreach (var other in stack)
+            {
+                _userMatches.Push(new Tuple<User, User>(user, other));
+            }
+        }
+        while (_userMatches.Count > 0)
+        {
+            var user = _userMatches.Pop();
+
+            foreach (var other in _userMatches)
+            {
+                _matches.Add(new AmericanoMatchModel() { TeamOne = user, TeamTwo = other});
+            }
+        }
+        /*Console.WriteLine("Vi er her");
+        var random = new Random();
+        while (_userMatches.Count > 0)
+        {
+            var team1 = random.Next(_userMatches.Count);
+            var team2 = random.Next(_userMatches.Count);
+            while (team2 == team1)
+            {
+                team2 = random.Next(_userMatches.Count - 1);
+            }
+            _matches.Add(new AmericanoMatchModel() { TeamOne = _userMatches.ElementAt(team1), TeamTwo = _userMatches.ElementAt(team2)});
+            Console.WriteLine("added match");
+            _userMatches.RemoveAt(team1);
+            _userMatches.RemoveAt(team2);
+        }
+        Console.WriteLine("done");*/ 
+        
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public class AmericanoMatchModel
+    {
+        public Tuple<User,User> TeamOne { get; set; }
+        public Tuple<User,User> TeamTwo { get; set; }
+    }
+}

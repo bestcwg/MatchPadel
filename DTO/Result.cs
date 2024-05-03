@@ -9,6 +9,7 @@ public class Result
     public int UserRefId { get; set; }
     public int Team { get; set; }
     public int MatchRefId { get; set; }
+    public int Score { get; set; }
     [JsonIgnore]
     public Match Match { get; set; }
     public User? User { get; set; }
