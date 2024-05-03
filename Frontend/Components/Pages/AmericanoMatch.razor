@@ -16,6 +16,7 @@
     <p>@userMatch.TeamOne.Item1.DisplayName : @userMatch.TeamOne.Item2.DisplayName</p>
     <p>@userMatch.TeamTwo.Item1.DisplayName : @userMatch.TeamTwo.Item2.DisplayName</p>
 }
+@_matches.Count
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -53,6 +54,8 @@
 
             foreach (var other in _userMatches)
             {
+                if(IsSamePlayerInBothTeam(user, other)) continue;
+
                 _matches.Add(new AmericanoMatchModel() { TeamOne = user, TeamTwo = other});
             }
         }
@@ -75,6 +78,14 @@
         
         StateHasChanged();
         return Task.CompletedTask;
+    }
+
+    private bool IsSamePlayerInBothTeam(Tuple<User, User> team1, Tuple<User, User> team2)
+    {
+        if (team1.Item1.DisplayName == team2.Item1.DisplayName || team1.Item1.DisplayName == team2.Item2.DisplayName) return true;
+        if (team1.Item2.DisplayName == team2.Item1.DisplayName || team1.Item2.DisplayName == team2.Item2.DisplayName) return true;
+        
+        return false;
     }
 
     public class AmericanoMatchModel
