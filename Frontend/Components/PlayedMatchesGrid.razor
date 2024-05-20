@@ -7,13 +7,15 @@
 @rendermode InteractiveServer
 
 <h3>PlayedMatchesGrid</h3>
+
 <QuickGrid Items="_matches">
     <PropertyColumn Property="@(m => m.GameType.Description)" Title="Game Type" Class="gametype-cell"></PropertyColumn>
     <PropertyColumn Property="@(m => ConvertToLocaleTimeFromUnixTimeInSeconds(m.DateTimeOffset))" Title="Date" Class="date-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.First(r => r.Team == m.Winner).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.Last(r => r.Team == m.Winner).User.DisplayName)" Title="Winner" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.First(r => r.Team != m.Winner).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => m.Results.Last(r => r.Team != m.Winner).User.DisplayName)" Title="Loser" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => FindWinner(m, true))" Title="Winner" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => FindWinner(m, false))" Title="Winner" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => FindLoser(m, true))" Title="Loser" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => FindLoser(m, false))" Title="Loser" Class="player-cell"></PropertyColumn>
+    
     <TemplateColumn>
         <div>
             <button @onclick="async (args) => { _currentSelectedMatch = context; await OnOpenResult(args); }">Show score</button>
@@ -35,21 +37,25 @@
                     <p>Team two</p>
                 </div>
             </div>
-            @foreach (var set in _currentSelectedMatch.Sets ??
-                                 throw new Exception("Result list is null in sets result dialog box"))
+            @if (_currentSelectedMatch.Sets.Count != 0)
             {
-                <div class="col">
-                    <div class="row">
-                        <h4>@set.Number</h4>
+                @foreach (var set in _currentSelectedMatch.Sets ??
+                                     throw new Exception("Result list is null in sets result dialog box"))
+                {
+                    <div class="col">
+                        <div class="row">
+                            <h4>@set.Number</h4>
+                        </div>
+                        <div class="row">
+                            <p>@set.TeamOneScore</p>
+                        </div>
+                        <div class="row">
+                            <p>@set.TeamTwoScore</p>
+                        </div>
                     </div>
-                    <div class="row">
-                        <p>@set.TeamOneScore</p>
-                    </div>
-                    <div class="row">
-                        <p>@set.TeamTwoScore</p>
-                    </div>
-                </div>
+                }     
             }
+            
             @if (_currentSelectedMatch.Results.Any())
             {
                 <div class="col">
@@ -115,5 +121,56 @@
         var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var datetime = epoch.AddSeconds(unixTime).ToLocalTime();
         return datetime.ToString("dd-MM-yyyy HH:mm");
+    }
+
+    private string FindWinner(Match match, bool isFirstUser)
+    {
+        var winner = string.Empty;
+        try
+        {
+            winner = isFirstUser ? match.Results.First(r => r.Team == match.Winner).User.DisplayName : 
+                match.Results.Last(r => r.Team == match.Winner).User.DisplayName;
+        }
+        catch (Exception)
+        {
+            CalculateWinner(ref winner);    
+        }
+        return winner;
+
+        void CalculateWinner(ref string winner)
+        {
+            var winningUser = (user:"", score:0);
+            foreach (var result in match.Results)
+            {
+                if (winningUser.score < result.Score) winningUser = (result.User.DisplayName, result.Score);
+            }
+
+            winner = winningUser.user;
+        }
+    }
+
+    private string FindLoser(Match match, bool isFirstLoser)
+    {
+        var loser = string.Empty;
+        try
+        {
+            loser = isFirstLoser ? match.Results.First(r => r.Team != match.Winner).User.DisplayName : match.Results.Last(r => r.Team != match.Winner).User.DisplayName;
+        }
+        catch (Exception)
+        {
+            CalculateLoser(ref loser);
+        }
+        return loser;
+
+        void CalculateLoser(ref string loser)
+        {
+            var losingUser = (user:"", score:int.MaxValue);
+            foreach (var result in match.Results)
+            {
+                if (losingUser.score > result.Score) losingUser = (result.User.DisplayName, result.Score);
+            }
+
+            loser = losingUser.user;
+        }
     }
 }

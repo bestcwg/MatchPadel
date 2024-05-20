@@ -63,6 +63,9 @@ namespace Backend.Migrations
                     b.Property<int>("UserRefId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Score")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Team")
                         .HasColumnType("INTEGER");
 

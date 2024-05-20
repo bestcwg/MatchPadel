@@ -1,26 +1,31 @@
 ﻿@page "/AmericanoMatch/{Id:int}"
 @using DTO
 @using Frontend.Data
+@using Frontend.Enum
 @inject HttpClientService httpClientService
 @inject Matches Matches
 @rendermode InteractiveServer
 <h3>AmericanoMatch</h3>
 
 <div>
-    <p>Match @(matchNumber+1)</p>
-    @{
+    @if (!_matchIsDone)
+    {
+        <p>Match @(matchNumber + 1) / @(_matches.Count)</p>
+    
         var match = _matches.ElementAt(matchNumber);
-        <p>@match.TeamOne.Item1.DisplayName : @match.TeamTwo.Item1.DisplayName</p> 
+        <p>@match.TeamOne.Item1.DisplayName : @match.TeamTwo.Item1.DisplayName</p>
         <p>@match.TeamOne.Item2.DisplayName : @match.TeamTwo.Item2.DisplayName</p>
-        <input @oninput="args => match.TeamOne = match.TeamOne with { Item3 = int.Parse((string)args.Value) }"/>
-        <input @oninput="args => match.TeamTwo = match.TeamTwo with { Item3 = int.Parse((string)args.Value) }"/>
+        <input @oninput="args => { var isInt = int.TryParse((string)args.Value, out var result); match.TeamOne = match.TeamOne with { Item3 = isInt ? result : 0 }; }"/>
+        <input @oninput="args => { var isInt = int.TryParse((string)args.Value, out var result); match.TeamTwo = match.TeamTwo with { Item3 = isInt ? result : 0 }; }"/>
         <p>@match.TeamOne.Item3 : @match.TeamTwo.Item3</p>
+    
+        <button @onclick="() => { if (matchNumber + 1 == _matches.Count) { EndMatch(); _matchIsDone = true; return; } matchNumber++; }">Next Match</button>    
     }
-    <button @onclick="() => { if(matchNumber < _matches.Count-1) matchNumber++;}">Next Match</button>
 </div>
 
 @code {
     [Parameter] public int Id { get; set; }
+    private bool _matchIsDone;
     private DTO.Match _currentMatch;
     private List<AmericanoMatchModel> _matches = [];
     private Stack<Tuple<User, User>> _userMatches = [];
@@ -72,6 +77,33 @@
         if (team1.Item2.DisplayName == team2.Item1.DisplayName || team1.Item2.DisplayName == team2.Item2.DisplayName) return true;
         
         return false;
+    }
+
+    private async Task EndMatch()
+    {
+        foreach (var match in _matches)
+        {
+            AddScoreToPlayer(match.TeamOne.Item1.DisplayName, match.TeamOne.Item3);
+            AddScoreToPlayer(match.TeamOne.Item2.DisplayName, match.TeamOne.Item3);
+
+            AddScoreToPlayer(match.TeamTwo.Item1.DisplayName, match.TeamTwo.Item3);
+            AddScoreToPlayer(match.TeamTwo.Item2.DisplayName, match.TeamTwo.Item3);
+        }
+
+        var winner = new Tuple<string, int>("", 0);
+        foreach (var player in _currentMatch.Results)
+        {
+            if (player.Score > winner.Item2) winner = new Tuple<string, int>(player.User.DisplayName, player.Score);
+        }
+
+        Console.WriteLine("Winner is: " + winner.Item1 + " with score: " + winner.Item2);
+
+        await httpClientService.PostMatchAsync(_currentMatch);
+    }
+
+    private void AddScoreToPlayer(string displayName, int score)
+    {
+        _currentMatch.Results.First(x => x.User.DisplayName == displayName).Score += score;
     }
 
     public class AmericanoMatchModel
