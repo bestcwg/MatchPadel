@@ -96,6 +96,8 @@
             if (player.Score > winner.Item2) winner = new Tuple<string, int>(player.User.DisplayName, player.Score);
         }
 
+        _currentMatch.DateTimeOffset = DateTimeOffset.Now.ToUnixTimeSeconds();
+        // Need popup of winner
         Console.WriteLine("Winner is: " + winner.Item1 + " with score: " + winner.Item2);
 
         await httpClientService.PostMatchAsync(_currentMatch);

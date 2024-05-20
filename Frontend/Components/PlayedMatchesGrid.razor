@@ -12,10 +12,9 @@
     <PropertyColumn Property="@(m => m.GameType.Description)" Title="Game Type" Class="gametype-cell"></PropertyColumn>
     <PropertyColumn Property="@(m => ConvertToLocaleTimeFromUnixTimeInSeconds(m.DateTimeOffset))" Title="Date" Class="date-cell"></PropertyColumn>
     <PropertyColumn Property="@(m => FindWinner(m, true))" Title="Winner" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => FindWinner(m, false))" Title="Winner" Class="player-cell"></PropertyColumn>
+    <PropertyColumn Property="@(m => m.GameType.Id == (int)GameTypes.Normal ? FindWinner(m, false) : "")" Title="" Class="player-cell"></PropertyColumn>
     <PropertyColumn Property="@(m => FindLoser(m, true))" Title="Loser" Class="player-cell"></PropertyColumn>
-    <PropertyColumn Property="@(m => FindLoser(m, false))" Title="Loser" Class="player-cell"></PropertyColumn>
-    
+    <PropertyColumn Property="@(m => m.GameType.Id == (int)GameTypes.Normal ? FindLoser(m, false) : "")" Title="" Class="player-cell"></PropertyColumn>
     <TemplateColumn>
         <div>
             <button @onclick="async (args) => { _currentSelectedMatch = context; await OnOpenResult(args); }">Show score</button>
@@ -26,52 +25,69 @@
 <dialog id="sets-result" class="w-50">
     <div class="container">
         <div class="row row-col-6">
-            <div class="col">
-                <div class="row">
-                    <h4>Set</h4>
-                </div>
-                <div class="row">
-                    <p>Team One</p>
-                </div>
-                <div class="row">
-                    <p>Team two</p>
-                </div>
-            </div>
-            @if (_currentSelectedMatch.Sets.Count != 0)
+            @if (_currentSelectedMatch?.GameType?.Id == (int)GameTypes.Normal)
             {
-                @foreach (var set in _currentSelectedMatch.Sets ??
-                                     throw new Exception("Result list is null in sets result dialog box"))
+                <div class="col">
+                    <div class="row">
+                        <h4>Set</h4>
+                    </div>
+                    <div class="row">
+                        <p>Team One</p>
+                    </div>
+                    <div class="row">
+                        <p>Team two</p>
+                    </div>
+                </div>
+                if (_currentSelectedMatch.Sets.Count != 0)
+                {
+                    @foreach (var set in _currentSelectedMatch.Sets ??
+                                         throw new Exception("Result list is null in sets result dialog box"))
+                    {
+                        <div class="col">
+                            <div class="row">
+                                <h4>@set.Number</h4>
+                            </div>
+                            <div class="row">
+                                <p>@set.TeamOneScore</p>
+                            </div>
+                            <div class="row">
+                                <p>@set.TeamTwoScore</p>
+                            </div>
+                        </div>
+                    }
+                }
+
+                if (_currentSelectedMatch.Results.Any())
                 {
                     <div class="col">
-                        <div class="row">
-                            <h4>@set.Number</h4>
-                        </div>
-                        <div class="row">
-                            <p>@set.TeamOneScore</p>
-                        </div>
-                        <div class="row">
-                            <p>@set.TeamTwoScore</p>
-                        </div>
+                        <h4>Team One</h4>
+                        @foreach (var player in _currentSelectedMatch.Results.Where(x => x.Team == (int)Teams.TeamOne))
+                        {
+                            <p>@player.User.DisplayName</p>
+                        }
+                    </div>
+                    <div class="col">
+                        <h4>Team Two</h4>
+                        @foreach (var player in _currentSelectedMatch.Results.Where(x => x.Team == (int)Teams.TeamTwo))
+                        {
+                            <p>@player.User.DisplayName</p>
+                        }
                     </div>
                 }     
             }
-            
-            @if (_currentSelectedMatch.Results.Any())
+            else
             {
-                <div class="col">
-                    <h4>Team One</h4>
-                    @foreach (var player in _currentSelectedMatch.Results.Where(x => x.Team == (int)Teams.TeamOne))
-                    {
-                        <p>@player.User.DisplayName</p>        
-                    }
-                </div>
-                <div class="col">
-                    <h4>Team Two</h4>
-                    @foreach (var player in _currentSelectedMatch.Results.Where(x => x.Team == (int)Teams.TeamTwo))
-                    {
-                        <p>@player.User.DisplayName</p>
-                    }
-                </div>    
+                foreach (var result in _currentSelectedMatch.Results)
+                {
+                    <div class="col">
+                        <div class="row">
+                            @result.User.DisplayName
+                        </div>
+                        <div class="row">
+                            @result.Score
+                        </div>
+                    </div>    
+                }
             }
         </div>
     </div>
@@ -86,11 +102,11 @@
     };
 </script>
 
-
 <style>
     .date-cell {
         width: 200px; 
     }
+    
     .player-cell {
         width: 100px; 
     }
