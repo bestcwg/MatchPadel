@@ -1,6 +1,0 @@
-@Backend_HostAddress = http://localhost:5129
-
-GET {{Backend_HostAddress}}/matches/
-Accept: application/json
-
-###
