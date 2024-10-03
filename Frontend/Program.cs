@@ -1,5 +1,7 @@
 using Frontend.Components;
 using Frontend.Data;
+using Microsoft.EntityFrameworkCore;
+using Frontend.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,10 +11,9 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton<Matches>();
 builder.Services.AddSingleton<HttpClientService>();
-builder.Services.AddHttpClient("backend", options =>
-{
-    options.BaseAddress = new Uri("http://localhost:5129");
-});
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+builder.Services.AddDbContext<MatchPadelContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString(nameof(MatchPadelContext))));
 
 var app = builder.Build();
 

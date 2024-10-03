@@ -1,17 +1,34 @@
-﻿using DTO;
+﻿using System.Security.Cryptography.X509Certificates;
+using DTO;
+using Frontend.Context;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Data;
 
-public class HttpClientService(IHttpClientFactory httpClientFactory)
+public class HttpClientService
 {
-    private HttpClient _httpClient = httpClientFactory.CreateClient("backend");
+    private MatchPadelContext db; 
 
-    public async Task<List<Match>> GetMatches()
+    public HttpClientService(IConfiguration config) {
+        var optionsBuilder = new DbContextOptionsBuilder<MatchPadelContext>();
+        optionsBuilder.UseSqlite(config.GetConnectionString(nameof(MatchPadelContext)));
+        db = new MatchPadelContext(optionsBuilder.Options);
+    }
+
+    public List<Match> GetMatches()
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<List<Match>>("/matches");
-            return response;
+            // var response = await _httpClient.GetFromJsonAsync<List<Match>>("/matches");
+            // db.Matches;
+            return db.Matches
+                    .Include(m => m.GameType)
+                    .Include(m => m.Sets)
+                    .Include(m => m.Results)!
+                    .ThenInclude(r => r.User)
+                    .ToList();
+            
         }
         catch (HttpRequestException e)
         {
@@ -29,7 +46,20 @@ public class HttpClientService(IHttpClientFactory httpClientFactory)
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("/match", match);
+            // var response = await _httpClient.PostAsJsonAsync("/match", match);
+            foreach (var result in match.Results)
+                {
+                    var user = db.Users.FirstOrDefault(u => u.DisplayName == result.User.DisplayName);
+                    if (user == null) continue;
+                   
+                    result.UserRefId = user.Id;
+                    result.User = null;
+                }
+                await db.Matches.AddAsync(match);
+                // Workaround so that ef dont try to add a new gametype to db
+                db.Entry(match.GameType).State = EntityState.Unchanged;
+               
+                await db.SaveChangesAsync();
         }
         catch (Exception e)
         {

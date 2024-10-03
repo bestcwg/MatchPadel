@@ -122,7 +122,7 @@
 
     protected override async Task OnInitializedAsync()
     {   
-        var matches = await HttpClientService.GetMatches();
+        var matches = HttpClientService.GetMatches();
         _matches = matches.AsQueryable();
         await base.OnInitializedAsync();
     }
