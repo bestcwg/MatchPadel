@@ -1,5 +1,5 @@
 ﻿@page "/match/{Id:int}"
-@using DTO
+@using Frontend.Models
 @using Frontend.Data
 @using Frontend.Enum
 @inject Matches Matches
@@ -82,7 +82,7 @@
     private int _currentSelectedSet;
     private Teams _winner = Teams.None;
     private const int MaxSets = 3;
-    private DTO.Match _currentMatch;
+    private Frontend.Models.Match _currentMatch;
 
     protected override Task OnInitializedAsync()
     {

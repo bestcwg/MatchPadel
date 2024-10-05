@@ -1,5 +1,5 @@
 ﻿@page "/CreateMatch"
-@using DTO
+@using Frontend.Models
 @using Frontend.Data
 @using Frontend.Enum
 @inject NavigationManager NavigationManager
@@ -50,7 +50,7 @@
 
     private Task CreateAsync()
     {
-        var match = new DTO.Match()
+        var match = new Frontend.Models.Match()
         {
             DateTimeOffset = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             GameType = new GameType

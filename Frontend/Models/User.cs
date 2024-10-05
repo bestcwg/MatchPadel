@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace DTO;
+namespace Frontend.Models;
 
 public class User 
 {

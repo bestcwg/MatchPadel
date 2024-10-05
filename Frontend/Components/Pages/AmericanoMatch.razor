@@ -1,5 +1,5 @@
 ﻿@page "/AmericanoMatch/{Id:int}"
-@using DTO
+@using Frontend.Models
 @using Frontend.Data
 @using Frontend.Enum
 @inject HttpClientService httpClientService
@@ -26,7 +26,7 @@
 @code {
     [Parameter] public int Id { get; set; }
     private bool _matchIsDone;
-    private DTO.Match _currentMatch;
+    private Frontend.Models.Match _currentMatch;
     private List<AmericanoMatchModel> _matches = [];
     private Stack<Tuple<User, User>> _userMatches = [];
     private int matchNumber; 

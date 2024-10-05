@@ -1,11 +1,11 @@
-﻿using DTO;
+﻿using Frontend.Models;
 using Frontend.Enum;
 
 namespace Frontend.Data;
 
 public class Matches
 {
-    public Dictionary<int, DTO.Match> Data { get; set; } = new();
+    public Dictionary<int, Frontend.Models.Match> Data { get; set; } = new();
 
     public int AddMatch(Match match)
     {

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace DTO;
+namespace Frontend.Models;
 
 public class Set(int number)
 {

@@ -20,7 +20,7 @@ namespace Frontend.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
 
-            modelBuilder.Entity("DTO.GameType", b =>
+            modelBuilder.Entity("Frontend.Models.GameType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,7 +35,7 @@ namespace Frontend.Migrations
                     b.ToTable("GameTypes");
                 });
 
-            modelBuilder.Entity("DTO.Match", b =>
+            modelBuilder.Entity("Frontend.Models.Match", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -58,7 +58,7 @@ namespace Frontend.Migrations
                     b.ToTable("Matches");
                 });
 
-            modelBuilder.Entity("DTO.Result", b =>
+            modelBuilder.Entity("Frontend.Models.Result", b =>
                 {
                     b.Property<int>("MatchRefId")
                         .HasColumnType("INTEGER");
@@ -79,7 +79,7 @@ namespace Frontend.Migrations
                     b.ToTable("Results");
                 });
 
-            modelBuilder.Entity("DTO.Set", b =>
+            modelBuilder.Entity("Frontend.Models.Set", b =>
                 {
                     b.Property<int>("MatchRefId")
                         .HasColumnType("INTEGER");
@@ -98,7 +98,7 @@ namespace Frontend.Migrations
                     b.ToTable("Sets");
                 });
 
-            modelBuilder.Entity("DTO.User", b =>
+            modelBuilder.Entity("Frontend.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -113,24 +113,24 @@ namespace Frontend.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("DTO.Match", b =>
+            modelBuilder.Entity("Frontend.Models.Match", b =>
                 {
-                    b.HasOne("DTO.GameType", "GameType")
+                    b.HasOne("Frontend.Models.GameType", "GameType")
                         .WithMany("Matches")
                         .HasForeignKey("GameTypeRefId");
 
                     b.Navigation("GameType");
                 });
 
-            modelBuilder.Entity("DTO.Result", b =>
+            modelBuilder.Entity("Frontend.Models.Result", b =>
                 {
-                    b.HasOne("DTO.Match", "Match")
+                    b.HasOne("Frontend.Models.Match", "Match")
                         .WithMany("Results")
                         .HasForeignKey("MatchRefId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DTO.User", "User")
+                    b.HasOne("Frontend.Models.User", "User")
                         .WithMany("Results")
                         .HasForeignKey("UserRefId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -141,9 +141,9 @@ namespace Frontend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DTO.Set", b =>
+            modelBuilder.Entity("Frontend.Models.Set", b =>
                 {
-                    b.HasOne("DTO.Match", "MatchNavigation")
+                    b.HasOne("Frontend.Models.Match", "MatchNavigation")
                         .WithMany("Sets")
                         .HasForeignKey("MatchRefId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -152,19 +152,19 @@ namespace Frontend.Migrations
                     b.Navigation("MatchNavigation");
                 });
 
-            modelBuilder.Entity("DTO.GameType", b =>
+            modelBuilder.Entity("Frontend.Models.GameType", b =>
                 {
                     b.Navigation("Matches");
                 });
 
-            modelBuilder.Entity("DTO.Match", b =>
+            modelBuilder.Entity("Frontend.Models.Match", b =>
                 {
                     b.Navigation("Results");
 
                     b.Navigation("Sets");
                 });
 
-            modelBuilder.Entity("DTO.User", b =>
+            modelBuilder.Entity("Frontend.Models.User", b =>
                 {
                     b.Navigation("Results");
                 });

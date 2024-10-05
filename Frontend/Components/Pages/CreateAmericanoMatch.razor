@@ -1,7 +1,7 @@
 ﻿@page "/CreateAmericanoMatch"
 @using Frontend.Data
 @using Frontend.Enum
-@using DTO
+@using Frontend.Models
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject Matches Matches
@@ -29,7 +29,7 @@
 
     private void CreateMatch()
     {
-        var match = new DTO.Match()
+        var match = new Frontend.Models.Match()
         {
             GameType = new GameType
             {

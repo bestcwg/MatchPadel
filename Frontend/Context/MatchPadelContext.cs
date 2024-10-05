@@ -1,4 +1,4 @@
-﻿using DTO;
+﻿using Frontend.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Context;
